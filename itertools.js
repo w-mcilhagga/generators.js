@@ -80,12 +80,10 @@ function* enumerate(iterable) {
 function to_indexable(obj) {
     // if obj is an iterator, it is run to completion
     // to produce an array.
-    try {
-        obj[0]
+    if (obj.length!=undefined) {
         return obj
-    } catch (e) {
-        return [...obj]
     }
+    return [...obj]
 }
 
 /** reverse
