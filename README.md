@@ -30,7 +30,7 @@ The generators provided are as follows
   * [`count`](#countstart-step)
   * [`cycle`](#cycleiterable-count)
   * [`repeat`](#repeatvalue-count)
-* **Combining generators:** Thse combine two or more generators.
+* **Combining generators:** These combine two or more generators.
   * [`chain`](#chainiterables)
   * [`islice`](#islicesource_iterable-index_iterable)
 * **Combinatoric generators:**
