@@ -23,21 +23,21 @@ The generators provided are as follows
 
 * **Built-in generators:** These are part of the python standard library.
   * [`enumerate`](#enumerateiterable)
-  * `range`
-  * `reverse`
-  * `zip`
+  * [`range`](#rangestart-stop-step)
+  * [`reverse`](#reverseiterable)
+  * [`zip`](#zipiterables)
 * **Infinite generators:** These can create finite or infinite sequences
-  * `count`
-  * `cycle`
-  * `repeat`
+  * [`count`](#countstart-step)
+  * [`cycle`](#cycleiterable-count)
+  * [`repeat`](#repeatvalue-count)
 * **Combining generators:** Thse combine two or more generators.
-  * `chain`
-  * `islice`
+  * [`chain`](#chainiterables)
+  * [`islice`](#islicesource_iterable-index_iterable)
 * **Combinatoric generators:**
-  * `combinations`
-  * `partitions`
-  * `permutations`
-  * `product`
+  * [`combinations`](#combinationsiterable-r)
+  * [`partitions`](#partitionsiterable-r)
+  * [`permutations`](#permutationsiterable-r)
+  * [`product`](#productiterables)
 
 # Alphabetical List
 
