@@ -10,7 +10,7 @@
  * @example [...range(0,5,1)] is [0,1,2,3,4],
  * 	        [...range(0,-5,-1)] is [0,-1,-2,-3,-4]
  */
-function* range(start, stop, step = 1) {
+export function* range(start, stop, step = 1) {
     if (stop == undefined) {
         ;[start, stop] = [0, start]
     }
@@ -31,7 +31,7 @@ function* range(start, stop, step = 1) {
  * count(n) yields n, n+1, n+2
  * count(n, -1) yields n, n-1, n-2, ...
  */
-function* count(start = 0, step = 1) {
+export function* count(start = 0, step = 1) {
     yield* range(start, Math.sign(step) * Infinity, step)
 }
 
@@ -42,7 +42,7 @@ function* count(start = 0, step = 1) {
  *
  * islice will fail if the slice sequence is not increasing
  */
-function* islice(iterable, indices) {
+export function* islice(iterable, indices) {
     let iterator = indices[Symbol.iterator](),
         idx = iterator.next().value
     for (let [i, v] of enumerate(iterable)) {
@@ -59,7 +59,7 @@ function* islice(iterable, indices) {
  *
  * zip stops when the shortest iterable is exhausted.
  */
-function* zip(...iterables) {
+export function* zip(...iterables) {
     let iterators = iterables.map((i) => i[Symbol.iterator]())
     while (true) {
         let next = iterators.map((i) => i.next())
@@ -73,7 +73,7 @@ function* zip(...iterables) {
 /* enumerate yields [count, value] pairs for the iterable
  * Much like Object.entries except that returns the indices as strings (keys).
  */
-function* enumerate(iterable) {
+export function* enumerate(iterable) {
     yield* zip(count(), iterable)
 }
 
@@ -90,7 +90,7 @@ function to_indexable(obj) {
  * iterate over an iterable in reverse.
  * The iterable is completely consumed
  */
-function* reverse(iterable) {
+export function* reverse(iterable) {
     iterable = to_indexable(iterable)
     for (let i = iterable.length - 1; i >= 0; i--) {
         yield iterable[i]
@@ -101,7 +101,7 @@ function* reverse(iterable) {
  * repeat an iterator or iterable a number of times
  * Iterators are completely consumed the first time.
  */
-function* cycle(iterable, count = Math.infinity) {
+export function* cycle(iterable, count = Math.infinity) {
     iterable = to_indexable(iterable)
     for (let i = 0; i < count; i++) {
         yield* iterable
@@ -112,7 +112,7 @@ function* cycle(iterable, count = Math.infinity) {
  * repeats a single value a number of times, if count not given
  * it repeats infinitely
  */
-function* repeat(value, count = Math.infinity) {
+export function* repeat(value, count = Math.infinity) {
     for (let i = 0; i < count; i++) {
         yield value
     }
@@ -121,7 +121,7 @@ function* repeat(value, count = Math.infinity) {
 /** chain
  * yields iterables one after another
  */
-function* chain(...iterables) {
+export function* chain(...iterables) {
     for (let i of iterables) {
         yield* i
     }
@@ -130,7 +130,7 @@ function* chain(...iterables) {
 /** product
  * cartesian product of iterables
  */
-function* product(...iterables) {
+export function* product(...iterables) {
     iterables = iterables.map(to_indexable)
     if (iterables.length == 1) {
         for (let a of iterables[0]) {
@@ -168,7 +168,7 @@ function omit_array(array, idx) {
 
 // this code taken from the python itertools docs & translated:
 
-function* combination_indices(n, r) {
+export function* combination_indices(n, r) {
     if (r > n) {
         return
     }
@@ -196,7 +196,7 @@ function* combination_indices(n, r) {
 /** combinations
  * combinations(iterable, r) returns all combinations of length r from the iterable
  */
-function* combinations(iterable, r) {
+export function* combinations(iterable, r) {
     let pool = to_indexable(iterable)
     for (let idx of combination_indices(pool.length, r)) {
         yield pick_array(pool, idx)
@@ -207,7 +207,7 @@ function* combinations(iterable, r) {
  * This is an extension of combinations.
  * partitions(iterable, r, n-r) returns all partitions of data into sizes r and n-r
  */
-function* partitions(iterable, ...sizes) {
+export function* partitions(iterable, ...sizes) {
     let pool = to_indexable(iterable),
         n = sizes.reduce((a, x) => a + x)
     if (n != pool.length) {
@@ -230,7 +230,7 @@ function* partitions(iterable, ...sizes) {
  * permutations(range(3)) --> 012 021 102 120 201 210
  * code taken from python
  */
-function* permutations(iterable, r) {
+export function* permutations(iterable, r) {
     let pool = [...iterable],
         n = pool.length
     r = r || n
