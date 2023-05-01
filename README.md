@@ -21,19 +21,19 @@ Download the file `itertools.js` and import any needed generators into your scri
 
 The generators provided are as follows
 
-* Built-in generators: These are part of the python standard library.
-  * `enumerate`
+* **Built-in generators:** These are part of the python standard library.
+  * [`enumerate`](#`enumerate(iterable)`)
   * `range`
   * `reverse`
   * `zip`
-* Infinite generators: These can create finite or infinite sequences
+* **Infinite generators:** These can create finite or infinite sequences
   * `count`
   * `cycle`
   * `repeat`
-* Combining generators: Thse combine two or more generators.
+* **Combining generators:** Thse combine two or more generators.
   * `chain`
   * `islice`
-* Combinatoric generators
+* **Combinatoric generators:**
   * `combinations`
   * `partitions`
   * `permutations`
@@ -115,6 +115,8 @@ For example, `partitions('abcd', 2, 2)` will yield
  [["c","d"],["a","b"]]
 ```
 The first of each pair is the value yielded by `combinations`. `partitions` is not part of the python itertools module.
+
+If $n$ is the size of the iterable and $r_1, r_2 ...$ are the partition sizes, then `partition` will yield $n!/(r_1!r_2!r_3!...)$ partitions.
 
 ## `permutations(iterable, r)`
 `permutations` returns successive r length permutations of elements in the iterable.
