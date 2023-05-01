@@ -22,7 +22,7 @@ Download the file `itertools.js` and import any needed generators into your scri
 The generators provided are as follows
 
 * **Built-in generators:** These are part of the python standard library.
-  * [`enumerate`](#`enumerate(iterable)`)
+  * [`enumerate`](#enumerateiterable)
   * `range`
   * `reverse`
   * `zip`
