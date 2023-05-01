@@ -1,0 +1,44 @@
+<script src="itertools.js"></script>
+<script>
+    console.log('range')
+    console.log([...range(10)])
+    console.log([...range(3, 10)])
+    console.log([...range(3, 10, 2.5)])
+    console.log([...range(-1, -10, -1)])
+
+    console.log('islice')
+    x = 'abcdefghijkl'
+    console.log([...islice(x, range(4))])
+    console.log([...islice(x, range(2, 6))])
+    console.log([...islice(x, range(0, 100, 2))])
+
+    console.log('zip')
+    for (let z of zip('abc', [2, 3, 4, 5])) {
+        console.log(z)
+    }
+    for (let z of zip(range(-1, -10, -1), range(1, 10))) {
+        console.log(z)
+    }
+
+    console.log('enumerate')
+    for (let z of enumerate('zoo')) {
+        console.log(z)
+    }
+
+    console.log('reverse')
+    console.log([...reverse('abcdef')])
+
+    console.log('cycle')
+    console.log([...cycle('abc', 3)])
+
+    console.log('repeat')
+    console.log([...repeat('zoo', 5)])
+
+    console.log('chain')
+    console.log([...chain('abc', range(6))])
+
+    console.log('product')
+    for (let p of product('ab', range(3))) {
+        console.log(p)
+    }
+</script>
