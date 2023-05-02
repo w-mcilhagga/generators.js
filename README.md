@@ -32,10 +32,11 @@ The generators provided are as follows
   * [`repeat`](#repeatvalue-count)
 * **Combining generators:** These combine two or more generators.
   * [`chain`](#chainiterables)
-  * [`islice`](#islicesource_iterable-index_iterable)
+  * [`islice`](#isliceiterable-start-stop-step)
+  * [`take`](#takeiterable-index) (not in python)
 * **Combinatoric generators:**
   * [`combinations`](#combinationsiterable-r)
-  * [`partitions`](#partitionsiterable-r)
+  * [`partitions`](#partitionsiterable-r) (not in python)
   * [`permutations`](#permutationsiterable-r)
   * [`product`](#productiterables)
 
@@ -92,15 +93,13 @@ will yield
 2 'c'
 ```
 
-## `islice(source_iterable, index_iterable)`
-Slicing is a form of indexing in python. `islice` does this indexing for general iterators. `itertools.js` changes `islice` to accept arbitrary indexes.
+## `islice(iterable, start, stop, step)`
+Slicing is a form of indexing in python. `islice` does this indexing for general iterators. `islice` accepts a source iterable and range parameters. It picks items from the source according to the values in the index. For example
 
-`islice` accepts a source iterable and an index iterable. It picks items from the source according to the values in the index. For example
+* `islice(x, 1,2)` yields `x[1], x[2]`
+* `islice(x, start, stop, step)` yields `x[start], x[start+step], x[start+2*step]...`
 
-* `islice(x, [1,2])` yields `x[1], x[2]`
-* `islice(x, range(start, stop, step))` yields `x[start], x[start+step], x[start+2*step]...`
-
-The index iterable must be increasing, or the result will be unexpected. `islice` stops when either the source or the index is exhausted.
+The slice must be increasing, or the result will be unexpected. `islice` stops when either the source or the range is exhausted.
 
 ## `partitions(iterable, ...r)`
 `partitions` is a more complete version of `combinations`. It splits the iterable into unique subsets of size `r[0], r[1], r[2], ...` without regard to the ordering within each subset. The total of `r` must add up to the size of the iterable.
@@ -166,6 +165,11 @@ python doesn't have the first kind of for loop.
 * `reverse([1,2,3])` yields `3, 2, 1`
 
 `reverse` must exhaust the iterable that is passed to it before it can reverse it. It can only be used on finite iterables, so `reverse(count())` will kill the browser.
+
+## `take(iterable, index)`
+takes elements from iterable accorind to the index. Index may be an iterable. This is a more general version of `islice`. For example, `islice(iterable, start, stop, step)` is the same as `take(iterable, range(start, stop, step))`.
+
+* `take(range(1,10), [0, 1, 4])` yields `1, 2, 5`
 
 ## `zip(...iterables)`
 `zip` accepts a series of iterables and iterates over them in parallel, stopping when the shortest iterable is exhausted. 

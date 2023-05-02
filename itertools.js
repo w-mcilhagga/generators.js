@@ -36,13 +36,23 @@ export function* count(start = 0, step = 1) {
 }
 
 /** islice
- * yield the elements of an iterable in a range or index set
- * islice('abcdef', range(0, 6, 2)) yields 'a', 'c', 'e'
- * islice('abcdef', [1,2,4]) yields 'b', 'c', 'e'
+ * yield the elements of an iterable as a slice
+ * islice('abcdef', 0, 6, 2) yields 'a', 'c', 'e'
  *
- * islice will fail if the slice sequence is not increasing
+ * islice will produce unexpected results if the slice sequence is not increasing
  */
-export function* islice(iterable, indices) {
+export function* islice(iterable, start, stop, step=1) {
+    yield* take(iterable, range(start, stop, step))
+}
+
+/** take
+ * yield the elements of an iterable in a range or index set
+ * take('abcdef', range(0, 6, 2)) yields 'a', 'c', 'e', same as islice('abcdef', 0, 6, 2)
+ * take('abcdef', [1,2,4]) yields 'b', 'c', 'e'
+ *
+ * take will produce unexpected results if the slice sequence is not increasing
+ */
+export function* take(iterable, indices) {
     let iterator = indices[Symbol.iterator](),
         idx = iterator.next().value
     for (let [i, v] of enumerate(iterable)) {
