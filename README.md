@@ -1,7 +1,7 @@
 # itertools.js
-python's itertools in javascript.
+Implementing some of python's itertools in javascript.
 
-Iterators and generators have been a part of python for a long while, but are more recent in javascript. As such, there are more iterator/generator examples in python. One such is [itertools](https://docs.python.org/3/library/itertools.html), which is a collectuion of generators (actually) that help with certain iteration tasks.
+Iterators and generators have been a part of python for a long while, but are more recent in javascript. As such, there are more iterator/generator examples in python. One such is [itertools](https://docs.python.org/3/library/itertools.html), which is a collection of generators (actually) that help with certain iteration tasks.
 
 This repo is an implementation of some of these generators in javascript. Note that there is also an implementation of itertools for node, also called [itertools](https://www.npmjs.com/package/itertools). 
 
@@ -9,9 +9,9 @@ This repo is an implementation of some of these generators in javascript. Note t
 
 Recall 
 
-* An **iterable** is an object that can be iterated over. If `X` is an iterable, it can appear in a for-of loop as `for (let x of X) {}` and in spread syntax, e.g. `[...X]`. Javascript requires iterables to have a `Symbol.iterator` method which returns an iterator object.
-* An **iterator** is the object that actually visits the elements of an iterable. An iterator must have a `next()` methodwhich is called repeatedly to obtain the next element in the iteration.
-* A **generator** is a function-like syntax for creating an object which is both an iterable and an iterator. That is, the `Symbol.iterator` returns itself.
+* An **iterable** is an object that can be iterated over. If `X` is an iterable, it can appear in a for-of loop as `for (let x of X) {}` and in spread syntax, e.g. `[...X]`. Javascript requires iterables to have a `Symbol.iterator` method which returns an iterator object when it is called. Iteratables can be iterated over many times if they return different iterator objects each time the `Symbol.iterator` method is called.
+* An **iterator** is the object that actually visits the elements of an iterable. An iterator must have a `next()` method which is called repeatedly to obtain the next element in the iteration. Iterators are typically single-use: once finished, they can do nothing.
+* A **generator** is a function-like syntax for creating an object which is both an iterable and an iterator. That is, the `Symbol.iterator` method returns the generator itself. Generators, like most iterators, are single use.
 
 For further details, see [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators)
 
@@ -19,14 +19,14 @@ For further details, see [MDN](https://developer.mozilla.org/en-US/docs/Web/Java
 
 Download the file `itertools.js` and import any needed generators into your script. The generators are described below.
 
-The generators provided are as follows
+The generators provided in `itertools.js` are
 
 * **Built-in generators:** These are part of the python standard library.
   * [`enumerate`](#enumerateiterable)
   * [`range`](#rangestart-stop-step)
   * [`reverse`](#reverseiterable)
   * [`zip`](#zipiterables)
-* **Infinite generators:** These can create finite or infinite sequences
+* **Infinite generators:** These create infinite sequences. The implementations here can also create finite sequences.
   * [`count`](#countstart-step)
   * [`cycle`](#cycleiterable-count)
   * [`repeat`](#repeatvalue-count)
@@ -43,7 +43,7 @@ The generators provided are as follows
 # Alphabetical List
 
 ## `chain(...iterables)`
-`chain` will chain iterables together, yielding the first one, then the second, then the third, etc. Used for treating consecutive sequences as a single sequence.
+`chain` will chain iterables together, yielding items from the first one, then items from the second, then the third, etc. Used for treating consecutive sequences as a single sequence.
 
 * `chain('ab', [1,2,3])` will yield `'a', 'b', 1, 2, 3`
 
@@ -61,7 +61,7 @@ will only produce `0,1,2` and not `0,1,2,0,1,2` as you might have expected.
 * `combinations('abcd', 2)` yields 
   `['a', 'b'], ['a', 'c'], ['a', 'd'], ['b', 'c'], ['b', 'd'], ['c', 'd']`
 
-If $n$ is the number of items in the iterable, there are $n!/(r!(n-r)!)$ combinations of $r$ elements.
+If $n$ is the number of items in the iterable, there are $n!/(r!(n-r)!)$ combinations of $r$ elements. If the iterable is an iterator, it is used up.
 
 ## `count(start, step)`
 `count` yields an infinite series of numbers. Not useful itself maybe, but can be combined with `zip` and other generators.
@@ -76,7 +76,7 @@ If $n$ is the number of items in the iterable, there are $n!/(r!(n-r)!)$ combina
 * `cycle([1,2,3], 3)` will yield `1, 2, 3, 1, 2, 3, 1, 2, 3`
 * `cycle([1,2,3])` will repeat the sequence `1, 2, 3` endlessly.
 
-`cycle` must exhaust the iterable that is passed to it before it starts.
+If the iterable is an iterator, it is used up.
 
 ## `enumerate(iterable)`
 `enumerate` can be used to loop over the indices and values of an iterable. For example
@@ -96,7 +96,7 @@ will yield
 ## `islice(iterable, start, stop, step)`
 Slicing is a form of indexing in python. `islice` does this indexing for general iterators. `islice` accepts a source iterable and range parameters. It picks items from the source according to the values in the index. For example
 
-* `islice(x, 1,2)` yields `x[1], x[2]`
+* `islice(x, 1, 3)` yields `x[1], x[2]`
 * `islice(x, start, stop, step)` yields `x[start], x[start+step], x[start+2*step]...`
 
 The slice must be increasing, or the result will be unexpected. `islice` stops when either the source or the range is exhausted.
@@ -116,6 +116,8 @@ For example, `partitions('abcd', 2, 2)` will yield
 The first of each pair is the value yielded by `combinations`. `partitions` is not part of the python itertools module.
 
 If $n$ is the size of the iterable and $r_1, r_2 ...$ are the partition sizes, then `partition` will yield $n!/(r_1!r_2!r_3!...)$ partitions.
+
+If the iterable is an iterator, it is used up.
 
 ## `permutations(iterable, r)`
 `permutations` returns successive r length permutations of elements in the iterable.

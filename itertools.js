@@ -41,7 +41,7 @@ export function* count(start = 0, step = 1) {
  *
  * islice will produce unexpected results if the slice sequence is not increasing
  */
-export function* islice(iterable, start, stop, step=1) {
+export function* islice(iterable, start, stop, step = 1) {
     yield* take(iterable, range(start, stop, step))
 }
 
@@ -84,16 +84,24 @@ export function* zip(...iterables) {
  * Much like Object.entries except that returns the indices as strings (keys).
  */
 export function* enumerate(iterable) {
-    yield* zip(count(), iterable)
+    yield* zip(count(0), iterable)
 }
 
-function to_indexable(obj) {
-    // if obj is an iterator, it is run to completion
-    // to produce an array.
-    if (obj.length!=undefined) {
-        return obj
+function make_indexable(a) {
+    // makes the iterator an array if needed,
+    // as these are the only js objects that can be indexed by integers
+    if (typeof a == 'string' || Array.isArray(a)) {
+        return a
     }
-    return [...obj]
+    return [...a]
+}
+
+function make_iterable(a) {
+    // makes iterators or generators into iterables
+    if (a.next) {
+        return [...a]
+    } 
+    return a
 }
 
 /** reverse
@@ -101,7 +109,7 @@ function to_indexable(obj) {
  * The iterable is completely consumed
  */
 export function* reverse(iterable) {
-    iterable = to_indexable(iterable)
+    iterable = make_indexable(iterable)
     for (let i = iterable.length - 1; i >= 0; i--) {
         yield iterable[i]
     }
@@ -112,7 +120,7 @@ export function* reverse(iterable) {
  * Iterators are completely consumed the first time.
  */
 export function* cycle(iterable, count = Math.infinity) {
-    iterable = to_indexable(iterable)
+    iterable = make_iterable(iterable)
     for (let i = 0; i < count; i++) {
         yield* iterable
     }
@@ -141,7 +149,7 @@ export function* chain(...iterables) {
  * cartesian product of iterables
  */
 export function* product(...iterables) {
-    iterables = iterables.map(to_indexable)
+    iterables = iterables.map(make_iterable)
     if (iterables.length == 1) {
         for (let a of iterables[0]) {
             yield [a]
@@ -207,7 +215,7 @@ export function* combination_indices(n, r) {
  * combinations(iterable, r) returns all combinations of length r from the iterable
  */
 export function* combinations(iterable, r) {
-    let pool = to_indexable(iterable)
+    iterable = make_indexable(iterable)
     for (let idx of combination_indices(pool.length, r)) {
         yield pick_array(pool, idx)
     }
@@ -218,7 +226,7 @@ export function* combinations(iterable, r) {
  * partitions(iterable, r, n-r) returns all partitions of data into sizes r and n-r
  */
 export function* partitions(iterable, ...sizes) {
-    let pool = to_indexable(iterable),
+    let pool = make_indexable(iterable),
         n = sizes.reduce((a, x) => a + x)
     if (n != pool.length) {
         return
@@ -241,7 +249,7 @@ export function* partitions(iterable, ...sizes) {
  * code taken from python
  */
 export function* permutations(iterable, r) {
-    let pool = [...iterable],
+    let pool = make_indexable(iterable),
         n = pool.length
     r = r || n
     if (r > n) {
@@ -272,15 +280,5 @@ export function* permutations(iterable, r) {
         if (!ok) {
             return
         }
-    }
-}
-
-// nothing to do with itertools really.
-
-function shuffle_in_place(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1)) // random index from 0 to i
-        // swap elements array[i] and array[j]
-        ;[array[i], array[j]] = [array[j], array[i]]
     }
 }
