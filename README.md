@@ -1,7 +1,7 @@
 # generators.js
 Implementing some of python's itertools in javascript.
 
-Iterators and generators have been a part of python for a long while, but are more recent in javascript. As such, there are more iterator/generator examples in python. One such is [itertools](https://docs.python.org/3/library/itertools.html), which is a collection of generators (actually) that help with certain iteration tasks.
+Iterators and generators have been a part of python for a long while, but are more recent in javascript. As such, there are more iterator/generator examples in python. One such is [itertools](https://docs.python.org/3/library/itertools.html), which is a collection of (actually) generators that help with certain iteration tasks.
 
 This repo is an implementation of some of these generators in javascript. Note that there is also an implementation of itertools for node, also called [itertools](https://www.npmjs.com/package/itertools). 
 
@@ -17,28 +17,26 @@ For further details, see [MDN](https://developer.mozilla.org/en-US/docs/Web/Java
 
 # Usage.
 
-Download the file `itertools.js` and import any needed generators into your script. The generators are described below.
+Download the file `generators.js` and `import` any needed generators into your script. The generators provided in `generators.js` are
 
-The generators provided in `itertools.js` are
-
-* **Built-in generators:** These are part of the python standard library.
+* **Standard generators:** These are part of the python standard library.
   * [`enumerate`](#enumerateiterable)
   * [`range`](#rangestart-stop-step)
-  * [`reverse`](#reverseiterable)
   * [`zip`](#zipiterables)
-* **Infinite generators:** These create infinite sequences. The implementations here can also create finite sequences.
+* **Infinite generators:** These can create infinite sequences. `cycle` and `repeat` can also create finite sequences.
   * [`count`](#countstart-step)
   * [`cycle`](#cycleiterable-count)
   * [`repeat`](#repeatvalue-count)
 * **Combining generators:** These combine two or more generators.
   * [`chain`](#chainiterables)
-  * [`islice`](#isliceiterable-start-stop-step)
-  * [`take`](#takeiterable-index) (not in python)
+  * [`take`](#takeiterable-index) (not in python, a generalization of python's `islice`)
 * **Combinatoric generators:**
   * [`combinations`](#combinationsiterable-r)
   * [`partitions`](#partitionsiterable-r) (not in python)
   * [`permutations`](#permutationsiterable-r)
   * [`product`](#productiterables)
+
+This list does not include some python generators that are perhaps of limited use (to me anyway) or can be easily replaced (e.g. python's `islice` is replaced with `take`).
 
 # Alphabetical List
 
@@ -61,7 +59,7 @@ will only produce `0,1,2` and not `0,1,2,0,1,2` as you might have expected.
 * `combinations('abcd', 2)` yields 
   `['a', 'b'], ['a', 'c'], ['a', 'd'], ['b', 'c'], ['b', 'd'], ['c', 'd']`
 
-If $n$ is the number of items in the iterable, there are $n!/(r!(n-r)!)$ combinations of $r$ elements. If the iterable is an iterator, it is used up.
+If $n$ is the number of items in the iterable, there are $n!/(r!(n-r)!)$ combinations of $r$ elements. If the iterable is not an array, it is spread into one first.
 
 ## `count(start, step)`
 `count` yields an infinite series of numbers. Not useful itself maybe, but can be combined with `zip` and other generators.
@@ -92,19 +90,12 @@ will yield
 1 'b'
 2 'c'
 ```
+This is similar to `Object.entries` when applied to an array.
 
-## `islice(iterable, start, stop, step)`
-Slicing is a form of indexing in python. `islice` does this indexing for general iterators. `islice` accepts a source iterable and range parameters. It picks items from the source according to the values in the index. For example
+## `partitions(iterable, sizes)`
+`partitions` is a more complete version of `combinations`. It splits the iterable into unique subsets of size `sizes[0], sizes[1], sizes[2], ...` without regard to the ordering within each subset. The total of `sizes` must add up to the length of the iterable.
 
-* `islice(x, 1, 3)` yields `x[1], x[2]`
-* `islice(x, start, stop, step)` yields `x[start], x[start+step], x[start+2*step]...`
-
-The slice must be increasing, or the result will be unexpected. `islice` stops when either the source or the range is exhausted.
-
-## `partitions(iterable, ...r)`
-`partitions` is a more complete version of `combinations`. It splits the iterable into unique subsets of size `r[0], r[1], r[2], ...` without regard to the ordering within each subset. The total of `r` must add up to the size of the iterable.
-
-For example, `partitions('abcd', 2, 2)` will yield
+For example, `partitions('abcd', [2, 2])` will yield
 ```
  [["a","b"],["c","d"]],
  [["a","c"],["b","d"]],
@@ -117,7 +108,7 @@ The first of each pair is the value yielded by `combinations`. `partitions` is n
 
 If $n$ is the size of the iterable and $r_1, r_2 ...$ are the partition sizes, then `partition` will yield $n!/(r_1!r_2!r_3!...)$ partitions.
 
-If the iterable is an iterator, it is used up.
+If the iterable is not an array, it is spread into one first.
 
 ## `permutations(iterable, r)`
 `permutations` returns successive r length permutations of elements in the iterable.
@@ -161,15 +152,8 @@ python doesn't have the first kind of for loop.
 * `repeat('hello', 3)` will yield `'hello', 'hello', 'hello'`
 * `repeat('hello')` will yield `'hello'` endlessly.
 
-## `reverse(iterable)`
-`reverse` simply iterates over the elements of an iterable in reverse.
-
-* `reverse([1,2,3])` yields `3, 2, 1`
-
-`reverse` must exhaust the iterable that is passed to it before it can reverse it. It can only be used on finite iterables, so `reverse(count())` will kill the browser.
-
 ## `take(iterable, index)`
-takes elements from iterable accorind to the index. Index may be an iterable. This is a more general version of `islice`. For example, `islice(iterable, start, stop, step)` is the same as `take(iterable, range(start, stop, step))`.
+takes elements from iterable accorind to the index. Index may be an iterable. 
 
 * `take(range(1,10), [0, 1, 4])` yields `1, 2, 5`
 

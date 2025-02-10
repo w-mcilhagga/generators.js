@@ -1,179 +1,244 @@
-<body>
-    <p>This test must be run using a local server.</p>
-</body>
-<script>
-    // basic test framework for javascript in the browser
-    //
-    // Usage: test(msg, f)
-    // When f is undefined, it writes a title.
-    // When f is a boolean, it writes a pass/fail div
-    // when f is a function, it calls it and writes a pass/fail div based on the result
-    //   but if f throws an exception, it writes an exception div
-
-    function test(name, f) {
-        // f resolves to true if the test is ok, false otherwise
-        var result,
-            div,
-            style =
-                'font-family:Arial;font-size:16pt;padding:5px;padding-left:40px;margin-bottom:4px;'
-
-        try {
-            result = f === undefined ? 'title' : typeof f === 'function' ? f() : f
-        } catch (e) {
-            result = e
-            console.log(e)
-        }
-
-        div = document.createElement('div')
-        div.innerHTML = name
-
-        if (result === true) {
-            div.style = style + 'background-color:lightgreen;color:darkgreen'
-        } else if (result === false) {
-            div.style = style + 'background-color:orange;color:white'
-        } else if (result == 'title') {
-            div.style = style + 'background-color:white;font-size:20pt;padding-left:10px;'
-        } else {
-            div.style = style + 'background-color:red;color:white'
-        }
-
-        if (!document.body) {
-            document.body = document.createElement('body')
-        }
-        document.body.appendChild(div)
-        typeof result == 'object' && console.error(name, result)
-    }
-</script>
-
 <script type="module">
-    function testeq(name, a, b) {
-        test(name, () => {
-            return JSON.stringify([...a]) == JSON.stringify([...b])
-        })
+    function equal(a, b) {
+        // true if the two arrays are the same
+        if (!Array.isArray(a) || !Array.isArray(b)) {
+            return false
+        }
+        if (a.length != b.length) {
+            return false
+        }
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) {
+                // may be arrays
+                if (!equal(a[i], b[i])) {
+                    return false
+                }
+            }
+        }
+        return true
     }
 
-    test('range')
-    import { range } from './itertools.js'
+    function test(msg, b) {
+        let a = [...eval(msg)]
+        if (typeof b == 'function') {
+            console.log(b(a) ? 'ok' : 'failed', msg)
+        } else {
+            console.log(equal(a, [...b]) ? 'ok' : 'failed', msg)
+        }
+    }
 
-    testeq('range(stop)', range(5), [0, 1, 2, 3, 4])
-    testeq('range(start, stop)', range(-1, 5), [-1, 0, 1, 2, 3, 4])
-    testeq('range(start, stop, step)', range(0, 5, 2), [0, 2, 4])
-    testeq('range(start, stop, -step)', range(0, -5, -1), [0, -1, -2, -3, -4])
-    testeq(
-        'range(start, stop, fractional step)',
-        range(2, 5, 0.5),
-        [2, 2.5, 3, 3.5, 4, 4.5]
-    )
+    import { range } from './generators.js'
+    window.range = range
 
-    test('islice')
-    import { islice, count } from './itertools.js'
+    test('range(4)', [0, 1, 2, 3])
+    test('range(3,7)', [3, 4, 5, 6])
+    test('range(7,3)', [])
+    test('range(3,10,2)', [3, 5, 7, 9])
+    test('range(2,-2,-1)', [2, 1, 0, -1])
 
-    testeq(
-        'islice(range, start, stop, step)',
-        islice(range(1, 10), 1, 8, 2),
-        [2, 4, 6, 8]
-    )
+    import { zip } from './generators.js'
+    window.zip = zip
 
-    test('take')
-    import { take } from './itertools.js'
-
-    testeq('take(range, array)', take(range(1, 10), [0, 1, 4]), [1, 2, 5])
-
-    test('zip')
-    import { zip } from './itertools.js'
-
-    testeq('zip("abc", [1, 2, 3, 4])', zip('abc', [1, 2, 3, 4]), [
-        ['a', 1],
-        ['b', 2],
-        ['c', 3],
+    test("zip('ABC', [1,2])", [
+        ['A', 1],
+        ['B', 2],
     ])
-    testeq('zip(range(1, 5), range(10))', zip(range(1, 5), range(10)), [
-        [1, 0],
-        [2, 1],
-        [3, 2],
-        [4, 3],
+    test('zip(range(3), range(10))', [
+        [0, 0],
+        [1, 1],
+        [2, 2],
     ])
 
-    test('enumerate')
-    import { enumerate } from './itertools.js'
+    // can't test count by itself
+    import { count } from './generators.js'
 
-    testeq('enumerate("zoo")', enumerate('zoo'), [
-        [0, 'z'],
-        [1, 'o'],
-        [2, 'o'],
+    test('zip(count(3), range(5))', [
+        [3, 0],
+        [4, 1],
+        [5, 2],
+        [6, 3],
+        [7, 4],
     ])
 
-    test('reverse')
-    import { reverse } from './itertools.js'
-
-    testeq('reverse("abcd")', reverse('abcd'), ['d', 'c', 'b', 'a'])
-
-    test('cycle')
-    import { cycle } from './itertools.js'
-
-    testeq('cycle("abc", 3)', cycle('abc', 3), [
-        'a',
-        'b',
-        'c',
-        'a',
-        'b',
-        'c',
-        'a',
-        'b',
-        'c',
-    ])
-    testeq('cycle(range(3), 2)', cycle(range(3), 2), [0, 1, 2, 0, 1, 2])
-
-    test('repeat')
-    import { repeat } from './itertools.js'
-
-    testeq('repeat("zoo", 3)', repeat('zoo', 3), ['zoo', 'zoo', 'zoo'])
-
-    test('chain')
-    import { chain } from './itertools.js'
-
-    testeq('chain("abc", range(6))', chain('abc', range(6)), [
-        'a',
-        'b',
-        'c',
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
+    test('zip(count(3,3), range(5))', [
+        [3, 0],
+        [6, 1],
+        [9, 2],
+        [12, 3],
+        [15, 4],
     ])
 
-    test('product')
-    import { product } from './itertools.js'
+    import { repeat } from './generators.js'
 
-    testeq('product("ab", range(3))', product('ab', range(3)), [
-        ['a', 0],
-        ['a', 1],
-        ['a', 2],
-        ['b', 0],
-        ['b', 1],
-        ['b', 2],
+    test('repeat(5,4)', [5, 5, 5, 5])
+    let x = {}
+    test('repeat(x,4)', [x, x, x, x])
+
+    import { enumerate } from './generators.js'
+
+    test("enumerate('ABCD')", [
+        [0, 'A'],
+        [1, 'B'],
+        [2, 'C'],
+        [3, 'D'],
+    ])
+    test("enumerate('ABCD',2)", [
+        [2, 'A'],
+        [3, 'B'],
+        [4, 'C'],
+        [5, 'D'],
     ])
 
-    test('permutations')
-    import { permutations } from './itertools.js'
+    import { cycle } from './generators.js'
 
-    testeq("permutations('abc')", permutations('abc'), [
-        ['a', 'b', 'c'],
-        ['a', 'c', 'b'],
-        ['b', 'a', 'c'],
-        ['b', 'c', 'a'],
-        ['c', 'a', 'b'],
-        ['c', 'b', 'a'],
+    test('cycle([1,2,3],2)', [1, 2, 3, 1, 2, 3])
+
+    import { chain } from './generators.js'
+
+    test("chain('ABC', [1,2], range(10,21,10))", ['A', 'B', 'C', 1, 2, 10, 20])
+
+    import { product } from './generators.js'
+    window.product = product
+
+    test("product('ABC', range(3))", [
+        ['A', 0],
+        ['A', 1],
+        ['A', 2],
+        ['B', 0],
+        ['B', 1],
+        ['B', 2],
+        ['C', 0],
+        ['C', 1],
+        ['C', 2],
     ])
 
-    testeq("permutations('abc', 2)", permutations('abc', 2), [
-        ['a', 'b'],
-        ['a', 'c'],
-        ['b', 'a'],
-        ['b', 'c'],
-        ['c', 'a'],
-        ['c', 'b'],
+    test("product('ABC', range(2), range(2,4))", [
+        ['A', 0, 2],
+        ['A', 0, 3],
+        ['A', 1, 2],
+        ['A', 1, 3],
+        ['B', 0, 2],
+        ['B', 0, 3],
+        ['B', 1, 2],
+        ['B', 1, 3],
+        ['C', 0, 2],
+        ['C', 0, 3],
+        ['C', 1, 2],
+        ['C', 1, 3],
     ])
+
+    // combinatoric generators must be tested indirectly for large sets
+
+    import { permutations } from './generators.js'
+    window.permutations = permutations
+
+    test('permutations([1,2,3])', [
+        [1, 2, 3],
+        [1, 3, 2],
+        [2, 1, 3],
+        [2, 3, 1],
+        [3, 1, 2],
+        [3, 2, 1],
+    ])
+
+    import { combinations } from './generators.js'
+    window.combinations = combinations
+
+    test('combinations([1,2,3],2)', [
+        [1, 2],
+        [1, 3],
+        [2, 3],
+    ])
+    test('combinations(range(1,4),2)', [
+        [1, 2],
+        [1, 3],
+        [2, 3],
+    ])
+    test('combinations([1,2,3],3)', [[1, 2, 3]])
+
+    function factorial(n, nn = BigInt(n)) {
+        return nn == 1 ? BigInt(1) : nn * factorial(n - 1, nn - BigInt(1))
+    }
+
+    function arr2str(arr) {
+        return '[' + arr.map((x) => String(x).padStart(5, ' ')).join(',') + ']'
+    }
+
+    function is_combination(arr, n) {
+        // returns a test function
+        return function (combo) {
+            // are there the right number of sets?
+            let len = factorial(arr.length) / factorial(n) / factorial(arr.length - n)
+            if (combo.length != len) {
+                return false
+            }
+            // are they all distinct?
+            combo = combo.map(arr2str)
+            for (let i = 0; i < combo.length; i++) {
+                for (let j = i + 1; j < combo.length; j++) {
+                    if (combo[i] == combo[j]) {
+                        return false
+                    }
+                }
+            }
+            // are they in order? - this test only works if the original array is
+            for (let i = 1; i < combo.length; i++) {
+                if (combo[i - 1] >= combo[i]) {
+                    return false
+                }
+            }
+            return true
+        }
+    }
+
+    test('combinations(range(12),3)', is_combination([...range(12)], 3))
+    test('combinations(range(10),4)', is_combination([...range(10)], 4))
+
+    import { partitions } from './generators.js'
+    window.partitions = partitions
+
+    function is_partition(arr, sizes) {
+        // returns a test function
+        return function (combo) {
+            // are there the right number of sets?
+            let num = factorial(arr.length),
+                denom = BigInt(1)
+            for (let s of sizes) {
+                denom *= factorial(s)
+            }
+            if (combo.length != num / denom) {
+                return false
+            }
+            // are they all distinct ?
+            for (let i = 0; i < combo.length; i++) {
+                for (let j = i + 1; j < combo.length; j++) {
+                    if (equal(combo[i], combo[j])) {
+                        return false
+                    }
+                }
+            }
+            // is their union always arr?
+            arr.sort()
+            let flatcombo = combo.map((c) => {
+                c = c.flat(10)
+                c.sort()
+                return c
+            })
+            for (let i = 0; i < combo.length; i++) {
+                if (!equal(flatcombo[i], arr)) {
+                    return false
+                }
+            }
+            // are they in order? - this test only works if the original array is
+            combo = combo.map((c) => c.map(arr2str).join(','))
+            for (let i = 1; i < combo.length; i++) {
+                if (combo[i - 1] >= combo[i]) {
+                    return false
+                }
+            }
+            return true
+        }
+    }
+
+    test('partitions(range(10),[2,3,5])', is_partition([...range(10)], [2, 3, 5]))
 </script>
