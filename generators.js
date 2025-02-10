@@ -217,48 +217,46 @@ export function* permutations(iterable) {
     }
 }
 
-export function* combinations(iterable, n, return_unused = false) {
+function _take(array, indices) {
+    // like take but optimized for this specific case
+    return indices.map((v) => array[v])
+}
+
+export function* combinations(iterable, n) {
     /* returns all combinations of n elements from an iterable. If the iterable isn't an array
      * it is turned into one using the spread operator, so an iterator is also
      * usable.
      *
      * combinations([1,2,3,4], 2) yields [1,2], [1,3], [1,4], [2,3], [2,4], [3,4]
      *
-     * If return_unused is true, the items of the iterable that *aren't* in the combination
-     * are also returned as an array. Thus
-     * combinations([1,2,3,4], 2, true) yields
-     *      [1,2, [3,4]], [1,3, [2,4]], [1,4, [2,3]], [2,3, [1,4]], [2,4, [1,3]], [3,4, [1,2]]
-     *
-     * The return_unused feature is mostly for partitions, below.
+     * combinations treats identical elements in the iterable as distinct
      */
 
-    yield* array_combinations(
-        Array.isArray(iterable) ? iterable : [...iterable],
-        n,
-        return_unused && []
-    )
+    iterable = Array.isArray(iterable) ? iterable : [...iterable]
+    let indices = [...range(iterable.length)]
 
-    function* array_combinations(array, n, unused) {
-        if (n <= 0 || n > array.length) {
-            throw new RangeError(
-                'n must be greater than 0 and less than the iteratable length'
-            )
-        }
-        if (n == 1 && unused) {
-            yield* array.map((item, i) => [item, [...unused, ...array.toSpliced(i, 1)]])
-        } else if (n == 1 && !unused) {
-            yield* array.map((item) => [item])
-        } else if (n == array.length) {
-            yield unused ? [...array, unused] : array
-        } else {
-            let [item, ...rest] = array
-            // first, all combinations that contain item
-            yield* prefix(item, array_combinations(rest, n - 1, unused))
-            // next, all combinations that don't contain item
-            unused?.push?.(item)
-            yield* array_combinations(rest, n, unused)
-            unused?.pop?.(item)
-        }
+    if (n <= 0 || n > iterable.length) {
+        throw new RangeError(
+            'n must be greater than 0 and less than the iteratable length'
+        )
+    }
+    for (let c of array_combinations(indices, n)) {
+        yield _take(iterable, c)
+    }
+}
+
+function* array_combinations(array, n) {
+    // internal use only
+    if (n == 1) {
+        yield* array.map((item) => [item])
+    } else if (n == array.length) {
+        yield [...array]
+    } else {
+        let [item, ...rest] = array
+        // first, all combinations that contain item
+        yield* prefix(item, array_combinations(rest, n - 1))
+        // then all combinations that don't
+        yield* array_combinations(rest, n)
     }
 }
 
@@ -276,19 +274,41 @@ export function* partitions(iterable, sizes) {
      *
      * Each partition (e.g. [[1,2],[3,4],[5]]) has sets of size 2,2,1
      */
-    yield* array_partitions(Array.isArray(iterable) ? iterable : [...iterable], sizes)
+    iterable = Array.isArray(iterable) ? iterable : [...iterable]
+    let indices = [...range(iterable.length)],
+        len = iterable.length
+    for (let s of sizes) {
+        len -= s
+    }
+    if (len != 0) {
+        throw new RangeError('sum of sizes must equal the iterable length')
+    }
 
-    function* array_partitions(array, sizes) {
-        if (sizes.length == 1) {
-            if (sizes[0] != array.length) {
-                throw new RangeError('sum of sizes must be equal to the iterator length')
-            }
-            yield [array]
-        } else {
-            for (let c of combinations(array, sizes[0], true)) {
-                let unused = c.pop()
-                yield* prefix(c, array_partitions([...unused], sizes.slice(1)))
-            }
+    for (let p of array_partitions(indices, sizes)) {
+        yield p.map((part) => _take(iterable, part))
+    }
+}
+
+function rest(array, indices) {
+    // removes elements of array in indices
+    let b = Array(array.length - indices.length),
+        idx = 0
+    indices = new Set(indices)
+    for (let i = 0; i < array.length; i++) {
+        if (!indices.has(array[i])) {
+            b[idx++] = array[i]
+        }
+    }
+    return b
+}
+
+function* array_partitions(array, sizes) {
+    // internal use only
+    if (sizes.length == 1) {
+        yield [array]
+    } else {
+        for (let c of array_combinations(array, sizes[0])) {
+            yield* prefix(c, array_partitions(rest(array, c), sizes.slice(1)))
         }
     }
 }
