@@ -131,8 +131,12 @@ export function* take(iterable, indices) {
      * take('abcdef', range(0, 6, 2)) yields 'a', 'c', 'e'
      * take('abcdef', [1,2,4]) yields 'b', 'c', 'e'
      *
-     * take will produce unexpected results if the slice sequence is not increasing
+     * take will produce unexpected results if the slice sequence is not increasing.
      */
+    if (Array.isArray(iterable) && Array.isArray(indices)) {
+        yield* array_take(iterable, indices)
+        return
+    }
     indices = indices[Symbol.iterator]()
     let idx = indices.next()
     if (idx.done) {
@@ -217,7 +221,7 @@ export function* permutations(iterable) {
     }
 }
 
-function _take(array, indices) {
+function array_take(array, indices) {
     // like take but optimized for this specific case
     return indices.map((v) => array[v])
 }
@@ -241,7 +245,7 @@ export function* combinations(iterable, n) {
         )
     }
     for (let c of array_combinations(indices, n)) {
-        yield _take(iterable, c)
+        yield array_take(iterable, c)
     }
 }
 
@@ -285,11 +289,11 @@ export function* partitions(iterable, sizes) {
     }
 
     for (let p of array_partitions(indices, sizes)) {
-        yield p.map((part) => _take(iterable, part))
+        yield p.map((part) => array_take(iterable, part))
     }
 }
 
-function rest(array, indices) {
+function array_diff(array, indices) {
     // removes elements of array in indices
     let b = Array(array.length - indices.length),
         idx = 0
@@ -308,7 +312,7 @@ function* array_partitions(array, sizes) {
         yield [array]
     } else {
         for (let c of array_combinations(array, sizes[0])) {
-            yield* prefix(c, array_partitions(rest(array, c), sizes.slice(1)))
+            yield* prefix(c, array_partitions(array_diff(array, c), sizes.slice(1)))
         }
     }
 }
