@@ -1,4 +1,4 @@
-# itertools.js
+# generators.js
 Implementing some of python's itertools in javascript.
 
 Iterators and generators have been a part of python for a long while, but are more recent in javascript. As such, there are more iterator/generator examples in python. One such is [itertools](https://docs.python.org/3/library/itertools.html), which is a collection of generators (actually) that help with certain iteration tasks.
