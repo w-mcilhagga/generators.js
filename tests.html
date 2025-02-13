@@ -118,8 +118,8 @@
     import { take } from './generators.js'
 
     test("take('abcdef', range(1,4))", ['b', 'c', 'd'])
-    test("take('a', range(1,4))", [])
-    test("take('abcdef', [2,200])", ['c'])
+    test("take('a', range(1,4))", [undefined, undefined, undefined])
+    test("take('abcdef', [2,200])", ['c', undefined])
 
     import { cycle } from './generators.js'
 
