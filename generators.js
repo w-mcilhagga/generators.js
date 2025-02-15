@@ -538,11 +538,11 @@ function* array_combinations(array, n) {
  *    of the individual arrays is one partition.
  *
  * Example:
- *    `partitions([1,2,3,4,5], [2,2,1])` yields
+ *  `partitions([1,2,3,4,5], [2,2,1])` yields
  *
- *     `[[1,2],[3,4],[5]], [[1,2],[3,5],[4]], [[1,2],[4,5],[3]], [[1,3],[2,4],[5]], ...`
+ *   `[[1,2],[3,4],[5]], [[1,2],[3,5],[4]], [[1,2],[4,5],[3]], [[1,3],[2,4],[5]], ...`
  *
- *     Each partition (e.g. `[[1,2],[3,4],[5]]`) has sets of size 2,2,1.
+ *   Each partition (e.g. `[[1,2],[3,4],[5]]`) has sets of size 2,2,1.
  *
  * Notes:
  *   All elements of the iterable are
