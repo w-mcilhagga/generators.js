@@ -1,4 +1,4 @@
-# generators.js
+# `generators.js`
 
 Implementing some of python's itertools in javascript.
 
@@ -30,6 +30,8 @@ For further details, see [MDN](https://developer.mozilla.org/en-US/docs/Web/Java
 # Usage.
 
 Download the file `generators.js` and `import` any needed generators into your script.
+
+# The Generators
 
 
 
@@ -117,9 +119,41 @@ generates a sequence of numbers.
 </dl>
 
 
-## `zip(...iterables)`
+```javascript
+export function* range(start, stop, step = 1) {
+    if (stop === undefined) {
+        ;[start, stop] = [0, start]
+    }
+    if (step > 0) {
+        for (let i = start; i < stop; i += step) {
+            yield i
+        }
+    } else {
+        for (let i = start; i > stop; i += step) {
+            yield i
+        }
+    }
+}
+
+```
+
+## `zip`
 iterates over several iterables in parallel, yielding their
 values as arrays. `zip` stops when any of the iterables is exhausted.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `zip(...iteables)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -184,8 +218,62 @@ values as arrays. `zip` stops when any of the iterables is exhausted.
 </dl>
 
 
+```javascript
+export function* zip(...iterables) {
+```
+
+We must convert all the iterables to iterators, because we are calling a next
+method on them.
+
+```javascript
+    let iterators = iterables.map((i) => i[Symbol.iterator]())
+
+    while (true) {
+```
+
+in a loop, get the next value for all the iterators
+
+```javascript
+        let result = iterators.map((i) => i.next())
+        if (result.every((r) => !r.done)) {
+```
+
+if none of the iterators are exhausted, we return
+all their values in an array
+
+```javascript
+            yield result.map((r) => r.value)
+        } else {
+```
+
+one of the iterators is exhausted, so we finish.
+
+```javascript
+            return
+        }
+    }
+}
+
+```
+
 ## `count`
 generates an infinite sequence of numbers
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+  * `count()`
+  * `count(start)`
+  * `count(start, step)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -225,8 +313,8 @@ generates an infinite sequence of numbers
 <dd>
 
   * `count()` generates `0, 1, 2, ...`
-  * `count(start)` generates `start, start+1, start+2, ...`
-  * `count(start, step)` generates `start, start+step, start+2*step, ...`
+  * `count(10)` generates `10, 11, 12, ...`
+  * `count(10, -1)` generates `10, 9, 8, ...`
 
 
 </dd>
@@ -249,8 +337,38 @@ generates an infinite sequence of numbers
 </dl>
 
 
+```javascript
+export function* count(start = 0, step = 1) {
+```
+
+count is simply an infinite loop.
+
+```javascript
+    while (true) {
+        yield start
+        start += step
+    }
+}
+
+```
+
 ## `repeat`
 will repeat an item a number of times.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `repeat(item)`
+   * `repeat(item, count)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -312,8 +430,32 @@ will repeat an item a number of times.
 </dl>
 
 
+```javascript
+export function* repeat(item, count = Infinity) {
+    while (count-- > 0) {
+        yield item
+    }
+}
+
+```
+
 ## `enumerate`
 generates a numbered sequence from an iterable.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `enumerate(iteable)`
+   * `enumerate(iterable, start)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -324,7 +466,7 @@ generates a numbered sequence from an iterable.
 <dd>
 
 * **iterable:**  the iterable to enumerate
-* **start:**  the start value for the enumeration. If omitted, it defaults to 0
+* **start:**  the start value for the enumeration index. If omitted, it defaults to 0
 
 
 </dd>
@@ -377,8 +519,38 @@ generates a numbered sequence from an iterable.
 </dl>
 
 
+```javascript
+export function* enumerate(iterable, start = 0) {
+```
+
+It's clear that `enumerate(iterable, start) == zip(count(start), iterable)`
+but a `for-of` loop is simpler and (maybe) faster.
+
+```javascript
+    for (let value of iterable) {
+        yield [start++, value]
+    }
+}
+
+```
+
 ## `cycle`
 cycles through an iterable a number of times.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `cycle(iterable)`
+   * `cycle(iterable, count)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -440,8 +612,32 @@ cycles through an iterable a number of times.
 </dl>
 
 
+```javascript
+export function* cycle(iterable, count = Infinity) {
+    iterable = iterable.next ? [...iterable] : iterable
+    while (count-- > 0) {
+        yield* iterable
+    }
+}
+
+```
+
 ## `chain`
 yield the elements of one iterable after another until all are used up.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `chain(...iterables)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -510,6 +706,15 @@ yield the elements of one iterable after another until all are used up.
 </dd>
 </dl>
 
+
+```javascript
+export function* chain(...iterables) {
+    for (let it of iterables) {
+        yield* it
+    }
+}
+
+```
 
 ## `take`
 yield the elements of an iterable specified by another index iterable
@@ -586,8 +791,137 @@ yield the elements of an iterable specified by another index iterable
 </dl>
 
 
+```javascript
+export function* take(iterable, indices) {
+```
+
+the indices need to be an array
+
+```javascript
+    indices = Array.isArray(indices) ? indices : [...indices]
+
+```
+
+if the iterable is an array or string, we can use a faster algorithm
+
+```javascript
+    if (Array.isArray(iterable) || typeof iterable == 'string') {
+        yield* array_take(iterable, indices)
+        return
+    }
+
+```
+
+our approach is to march through the indices array, finding the
+corresponding element in iterable. However, because the elements of
+indices might not be in order, we have to cache the elements of iterable that
+we might find useful.
+
+```javascript
+
+```
+
+index_set tells us which indices exist,
+cache will store those it finds.
+
+```javascript
+    let index_set = new Set(indices),
+        cache = {}
+
+    let iterator = enumerate(iterable)
+
+    main: for (let index of indices) {
+        if (index in cache) {
+```
+
+cache hit !!
+
+```javascript
+            yield cache[index]
+        } else {
+```
+
+cache miss !
+we advance the iterator until we find the
+index or until we run out of values
+
+```javascript
+            for (let [iterable_index, value] of iterator) {
+                if (index_set.has(iterable_index)) {
+                    cache[iterable_index] = value // save for later
+                }
+                if (index == iterable_index) {
+```
+
+we've just put the value in the cache
+
+```javascript
+                    yield cache[index]
+                    break main
+                }
+            }
+```
+
+run out of iterable values
+
+```javascript
+            yield (cache[index] = undefined)
+        }
+    }
+}
+
+```
+
+`array_take` is like take but optimized for this specific case
+the indices don't have to be in order or unique.
+
+```javascript
+function array_take(array, indices) {
+    return indices.map((v) => array[v])
+}
+
+```
+
+`prefix` is an internal function which yields [item, ...value] for value in iterable.
+Requires the values of the iterable to be spreadable.
+Used in combinatorial generators.
+
+```javascript
+function* prefix(item, iterable) {
+    for (let value of iterable) {
+        yield [item, ...value]
+    }
+}
+
+```
+
+`itermap` is an internal function which yields callbackFn(value) for value in iterable
+
+```javascript
+function* itermap(iterable, callbackFn) {
+    for (let value of iterable) {
+        yield callbackFn(value)
+    }
+}
+
+```
+
 ## `product`
 yields the cartesian product of the iterables
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `product(...iterables)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -647,8 +981,63 @@ yields the cartesian product of the iterables
 </dl>
 
 
+```javascript
+export function* product(...iterables) {
+```
+
+convert everything to iterables and then pass to a recursive
+helper function
+
+```javascript
+    yield* _product(...iterables.map((i) => (i.next ? [...i] : i)))
+
+    function* _product(...iterables) {
+```
+
+the product A*B*C*D... can be written as A*product(B, C, D, ...)
+
+```javascript
+        if (iterables.length == 1) {
+```
+
+the product is just a sequence of values from iterable[0],
+as arrays
+
+```javascript
+            yield* itermap(iterables[0], (item) => [item])
+        } else {
+```
+
+product(A,B,C, ...) = $A\times product(B,C,...)$, so
+we recursively call product(B,C,...) and then put every element
+of A in front of it.
+
+```javascript
+            for (let item of iterables[0]) {
+                yield* prefix(item, _product(...iterables.slice(1)))
+            }
+        }
+    }
+}
+
+```
+
 ## `permutations`
 yields all permutations of an iterable.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `permutations(iterable)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -700,8 +1089,77 @@ yields all permutations of an iterable.
 </dl>
 
 
+```javascript
+export function* permutations(iterable) {
+```
+
+convert the parameter to an array and then call a helper function
+
+```javascript
+    yield* array_permutations(Array.isArray(iterable) ? iterable : [...iterable])
+
+    function* array_permutations(array) {
+```
+
+generate all permutations
+
+```javascript
+        if (array.length <= 1) {
+```
+
+there is only one permutation when the array has 0 or 1 elements
+
+```javascript
+            yield array
+        } else {
+            for (let i = 0; i < array.length; i++) {
+```
+
+generate all permutations starting with element i
+first remove item i from the array (NB the return value of
+splice is an array, so the item is actually
+the first element of the splice)
+
+```javascript
+                let item = array.splice(i, 1)[0]
+
+```
+
+then recursively find all permutations of the remaining elements and prefix
+then with item i
+
+```javascript
+                yield* prefix(item, array_permutations(array))
+
+```
+
+then restore item i back into the array in its original place.
+
+```javascript
+                array.splice(i, 0, item)
+            }
+        }
+    }
+}
+
+```
+
 ## `combinations`
 yields all combinations of n elements from an iterable.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `combinations(iterable, n)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -751,12 +1209,71 @@ yields all combinations of n elements from an iterable.
 </dl>
 
 
+```javascript
+export function* combinations(iterable, n) {
+    iterable = Array.isArray(iterable) ? iterable : [...iterable]
+    let indices = [...range(iterable.length)]
+
+    if (n <= 0 || n > iterable.length) {
+        throw new RangeError(
+            'n must be greater than 0 and less than the iteratable length'
+        )
+    }
+    for (let c of array_combinations(indices, n)) {
+        yield array_take(iterable, c)
+    }
+}
+
+```
+
+internal use only
+
+```javascript
+
+function* array_combinations(array, n) {
+    if (n == 1) {
+        yield* array.map((item) => [item])
+    } else if (n == array.length) {
+        yield [...array]
+    } else {
+        let [item, ...rest] = array
+```
+
+first, all combinations that contain item
+
+```javascript
+        yield* prefix(item, array_combinations(rest, n - 1))
+```
+
+then all combinations that don't
+
+```javascript
+        yield* array_combinations(rest, n)
+    }
+}
+
+```
+
 ## `partitions`
 yields all partitions of the iterable with given sizes
 A partition is a group of subsets such that
 a) they are disjoint
 b) their union is the iterable
 c) they have the sizes specified.
+
+<dl>
+<dt>
+
+**Usage**
+
+</dt>
+<dd>
+
+   * `partitions(iterable, sizes)`
+
+
+</dd>
+</dl>
 
 <dl>
 <dt>
@@ -768,7 +1285,7 @@ c) they have the sizes specified.
 
 * **iterable:**  the iterable to partition; think of it as a set. If the iterable isn't
     an array, it is turned into one.
-* **sizes:**  an array of sizes, of partitions, which must add up to the number
+* **sizes:**  an array of partition sizes which must add up to the number
     of items in the iterable.
 
 
@@ -824,3 +1341,54 @@ c) they have the sizes specified.
 </dd>
 </dl>
 
+
+```javascript
+export function* partitions(iterable, sizes) {
+    iterable = Array.isArray(iterable) ? iterable : [...iterable]
+    let indices = [...range(iterable.length)],
+        len = iterable.length
+    for (let s of sizes) {
+        len -= s
+    }
+    if (len != 0) {
+        throw new RangeError('sum of sizes must equal the iterable length')
+    }
+
+    for (let p of array_partitions(indices, sizes)) {
+        yield p.map((part) => array_take(iterable, part))
+    }
+}
+
+```
+
+the opposite of take; the ordering is of the first array.
+
+```javascript
+function leave(array, indices) {
+    let b = Array(array.length - indices.length),
+        idx = 0
+    indices = new Set(indices)
+    for (let i = 0; i < array.length; i++) {
+        if (!indices.has(array[i])) {
+            b[idx++] = array[i]
+        }
+    }
+    return b
+}
+
+```
+
+internal use.
+
+```javascript
+function* array_partitions(array, sizes) {
+    if (sizes.length == 1) {
+        yield [array]
+    } else {
+        for (let c of array_combinations(array, sizes[0])) {
+            yield* prefix(c, array_partitions(leave(array, c), sizes.slice(1)))
+        }
+    }
+}
+
+```

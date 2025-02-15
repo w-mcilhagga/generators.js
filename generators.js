@@ -1,4 +1,4 @@
-/** # generators.js
+/** # `generators.js`
  *
  * Implementing some of python's itertools in javascript.
  *
@@ -30,6 +30,8 @@
  * # Usage.
  *
  * Download the file `generators.js` and `import` any needed generators into your script.
+ *
+ * # The Generators
  */
 
 /** ## `range`
@@ -75,9 +77,12 @@ export function* range(start, stop, step = 1) {
     }
 }
 
-/** ## `zip(...iterables)`
+/** ## `zip`
  * iterates over several iterables in parallel, yielding their
  * values as arrays. `zip` stops when any of the iterables is exhausted.
+ *
+ * Usage:
+ *    * `zip(...iteables)`
  *
  * Parameters:
  *      ...iterables: a set of iterables
@@ -119,6 +124,11 @@ export function* zip(...iterables) {
 /** ## `count`
  * generates an infinite sequence of numbers
  *
+ * Usage:
+ *   * `count()`
+ *   * `count(start)`
+ *   * `count(start, step)`
+ *
  * Parameters:
  *    start: the value to start counting from. If omitted, it defaults to 0
  *    step: the step between successive values yielded. If omitted, it defaults to 1.
@@ -128,8 +138,8 @@ export function* zip(...iterables) {
  *
  * Examples:
  *   * `count()` generates `0, 1, 2, ...`
- *   * `count(start)` generates `start, start+1, start+2, ...`
- *   * `count(start, step)` generates `start, start+step, start+2*step, ...`
+ *   * `count(10)` generates `10, 11, 12, ...`
+ *   * `count(10, -1)` generates `10, 9, 8, ...`
  *
  * Notes:
  *   `start` and `step` don't *need* to be numbers, any type with + defined will do. So,
@@ -146,6 +156,10 @@ export function* count(start = 0, step = 1) {
 
 /** ## `repeat`
  * will repeat an item a number of times.
+ *
+ * Usage:
+ *    * `repeat(item)`
+ *    * `repeat(item, count)`
  *
  * Parameters:
  *    item: the item to repeat
@@ -171,9 +185,13 @@ export function* repeat(item, count = Infinity) {
 /** ## `enumerate`
  * generates a numbered sequence from an iterable.
  *
+ * Usage:
+ *    * `enumerate(iteable)`
+ *    * `enumerate(iterable, start)`
+ *
  * Parameters:
  *    iterable: the iterable to enumerate
- *    start: the start value for the enumeration. If omitted, it defaults to 0
+ *    start: the start value for the enumeration index. If omitted, it defaults to 0
  *
  * Yields:
  *    a sequence of `[index, value]`.
@@ -199,6 +217,10 @@ export function* enumerate(iterable, start = 0) {
 /** ## `cycle`
  * cycles through an iterable a number of times.
  *
+ * Usage:
+ *    * `cycle(iterable)`
+ *    * `cycle(iterable, count)`
+ *
  * Parameters:
  *    iterable: the iterable to cycle over
  *    count: the number of times to cycle. If omitted, it defaults to infinity
@@ -223,6 +245,9 @@ export function* cycle(iterable, count = Infinity) {
 
 /** ## `chain`
  * yield the elements of one iterable after another until all are used up.
+ *
+ * Usage:
+ *    * `chain(...iterables)`
  *
  * Parameters:
  *    ...iterables: the iterables to chain together
@@ -354,6 +379,9 @@ function* itermap(iterable, callbackFn) {
 /** ## `product`
  * yields the cartesian product of the iterables
  *
+ * Usage:
+ *    * `product(...iterables)`
+ *
  * Parameters:
  *    ...iterables: the iterables to "multiply"
  *
@@ -391,6 +419,9 @@ export function* product(...iterables) {
 
 /** ## `permutations`
  * yields all permutations of an iterable.
+ *
+ * Usage:
+ *    * `permutations(iterable)`
  *
  * Parameters:
  *     iterable: the iterable to permute. If the iterable isn't an array, it is
@@ -438,6 +469,9 @@ export function* permutations(iterable) {
 
 /** ## `combinations`
  * yields all combinations of n elements from an iterable.
+ *
+ * Usage:
+ *    * `combinations(iterable, n)`
  *
  * Parameters:
  *     iterable: the iterable to take subsets from. If the iterable isn't an array
@@ -490,10 +524,13 @@ function* array_combinations(array, n) {
  * b) their union is the iterable
  * c) they have the sizes specified.
  *
+ * Usage:
+ *    * `partitions(iterable, sizes)`
+ *
  * Parameters:
  *    iterable: the iterable to partition; think of it as a set. If the iterable isn't
  *        an array, it is turned into one.
- *    sizes: an array of sizes, of partitions, which must add up to the number
+ *    sizes: an array of partition sizes which must add up to the number
  *        of items in the iterable.
  *
  * Yields:
