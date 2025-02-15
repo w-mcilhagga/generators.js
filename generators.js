@@ -1,9 +1,44 @@
-/*
- * `generators.js` implements a number of useful generators modelled on the ones in Python's `itertools`
- * library.
+/** # generators.js
+ *
+ * Implementing some of python's itertools in javascript.
+ *
+ * Iterators and generators have been a part of python for a long while, but are more recent in javascript.
+ * As such, there are more iterator/generator examples in python. One such is
+ * [itertools](https://docs.python.org/3/library/itertools.html), which is a collection of
+ * (actually) generators that help with certain iteration tasks.
+ *
+ * This repo is an implementation of some of these generators in javascript. Note that there is also an
+ * implementation of itertools for node, also called
+ * [itertools](https://www.npmjs.com/package/itertools).
+ *
+ * # Iterables, Iterators, and Generators.
+ *
+ * Recall
+ *
+ * * An **iterable** is an object that can be iterated over. If `X` is an iterable, it can appear in a for-of loop as
+ *   `for (let x of X) {}` and in spread syntax, e.g. `[...X]`. Javascript requires iterables to have a `Symbol.iterator`
+ *   method which returns an iterator object when it is called. Iteratables can be iterated over many times if they return
+ *   different iterator objects each time the `Symbol.iterator` method is called.
+ * * An **iterator** is the object that actually visits the elements of an iterable. An iterator must have a `next()`
+ *   method which is called repeatedly to obtain the next element in the iteration. Iterators are typically single-use:
+ *   once finished, they can do nothing.
+ * * A **generator** is a function-like syntax for creating an object which is both an iterable and an iterator. That is,
+ *   the `Symbol.iterator` method returns the generator itself. Generators, like most iterators, are single use.
+ *
+ * For further details, see [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators)
+ *
+ * # Usage.
+ *
+ * Download the file `generators.js` and `import` any needed generators into your script.
  */
 
-/* `range` generates a sequence of numbers.
+/** ## `range`
+ * generates a sequence of numbers.
+ *
+ * Usage:
+ *   * `range(stop)`
+ *   * `range(start,stop)`
+ *   * `range(start, stop, step)`
  *
  * Parameters:
  *   start: the start of the sequence of numbers; if omitted, it defaults to 0
@@ -11,18 +46,19 @@
  *   step: the step between successive elements in the sequence; if omitted, it defaults to 1.
  *
  * Yields:
- *   a sequence of numbers, start, start+step, start+2*step, ... up until but not including stop.
+ *   a sequence of numbers, `start, start+step, start+2*step, ...` up until but
+ *   not including stop.
  *
  * Examples:
- *   * `range(stop)` yields `0, 1, 2, ..., stop-1`
- *   * `range(start, stop)` yields `start, start+1, start+2, ... stop-1`
- *   * `range(start, stop, step)` yields `start, start+step, start+2*step, ... `
- *      until this exceeds `stop-1`, when step is positive, or exceeds `stop+1`, when step is negative.
- *      So, `range(-2,2,1)` yields `-2, -1, 0, 1` and `range(2,-2,-1)` yields `2, 1, 0, -1`
+ *   * `range(10)` yields `0, 1, 2, 3, 4, 5, 6, 7, 8, 9`
+ *   * `range(3, 10)` yields `3, 4, 5, 6, 7, 8, 9`
+ *   * `range(3, 11, 2)` yields `3, 5, 7, 9`
+ *   * `range(2,-1,-1)` yields `2, 1, 0, -1`
  *
- * `range` is not as useful in javascript as python (where it is fundamental to looping)
- * but can be used to e.g. initialize an array with the spread syntax e.g. `[...range(5)]` produces
- * the array `[0, 1, 2, 3, 4]`
+ * Notes:
+ *   `range` is not as useful in javascript as python (where it is fundamental to looping)
+ *   but can be used to e.g. initialize an array with the spread syntax e.g. `[...range(5)]` produces
+ *   the array `[0, 1, 2, 3, 4]`
  */
 export function* range(start, stop, step = 1) {
     if (stop === undefined) {
@@ -39,25 +75,27 @@ export function* range(start, stop, step = 1) {
     }
 }
 
-/* `zip` iterates over several iterables in parallel, yielding their
+/** ## `zip(...iterables)`
+ * iterates over several iterables in parallel, yielding their
  * values as arrays. `zip` stops when any of the iterables is exhausted.
  *
  * Parameters:
  *      ...iterables: a set of iterables
  *
  * Yields:
- *      the values across all iterables collected in an array.
+ *   the values across all iterables collected in an array.
  *
  * Example:
  *   * `zip('ABC', [1,2,3,4])` yields ` ['A',1], ['B',2], ['C',3]`
  *
- * Any arguments that are repeated iterators won't zip properly. For example
+ * Notes:
+ *    Any arguments that are repeated iterators won't zip properly. For example
  *
- * ```
+ *   ```
  *   let x = range(3)
  *   [...zip(x, x)]
- * ```
- * will produce `[[0,1]]` instead of the expected `[[0,0], [1,1], [2,2] ]`
+ *   ```
+ *   will produce `[[0,1]]` instead of the expected `[[0,0], [1,1], [2,2] ]`
  */
 export function* zip(...iterables) {
     // We must convert all the iterables to iterators, because we are calling a next
@@ -69,7 +107,7 @@ export function* zip(...iterables) {
         let result = iterators.map((i) => i.next())
         if (result.every((r) => !r.done)) {
             // if none of the iterators are exhausted, we return
-            // // all their values in an array
+            // all their values in an array
             yield result.map((r) => r.value)
         } else {
             // one of the iterators is exhausted, so we finish.
@@ -78,7 +116,8 @@ export function* zip(...iterables) {
     }
 }
 
-/* `count` generates an infinite sequence of numbers
+/** ## `count`
+ * generates an infinite sequence of numbers
  *
  * Parameters:
  *    start: the value to start counting from. If omitted, it defaults to 0
@@ -92,9 +131,11 @@ export function* zip(...iterables) {
  *   * `count(start)` generates `start, start+1, start+2, ...`
  *   * `count(start, step)` generates `start, start+step, start+2*step, ...`
  *
- * start and step don't *need* to be numbers, any type with + defined will do. So,
- * for example, `count('a')` yields `'a', 'a1', 'a11', 'a111', ...`
+ * Notes:
+ *   `start` and `step` don't *need* to be numbers, any type with + defined will do. So,
+ *   for example, `count('a')` yields `'a', 'a1', 'a11', 'a111', ...`
  */
+
 export function* count(start = 0, step = 1) {
     // count is simply an infinite loop.
     while (true) {
@@ -103,7 +144,8 @@ export function* count(start = 0, step = 1) {
     }
 }
 
-/* `repeat` will repeat an item a number of times.
+/** ## `repeat`
+ * will repeat an item a number of times.
  *
  * Parameters:
  *    item: the item to repeat
@@ -117,7 +159,8 @@ export function* count(start = 0, step = 1) {
  *    * `repeat({a:1})` yields `{a:1}, {a:1}, ...` (all the objects are the same one)
  *    * `repeat(x, 5)` yields a sequence of 5 items, `x, x, x, x, x`.
  *
- * You can generate a ten element array of zeros by [...repeat(0,10)]
+ * Note:
+ *    You can generate a ten element array of zeros by `[...repeat(0,10)]`
  */
 export function* repeat(item, count = Infinity) {
     while (count-- > 0) {
@@ -125,7 +168,8 @@ export function* repeat(item, count = Infinity) {
     }
 }
 
-/* `enumerate` generates a numbered sequence from an iterable.
+/** ## `enumerate`
+ * generates a numbered sequence from an iterable.
  *
  * Parameters:
  *    iterable: the iterable to enumerate
@@ -140,8 +184,9 @@ export function* repeat(item, count = Infinity) {
  *      parameter says where to start counting (default is 0, but 1 might sometimes
  *      be useful).
  *
- * `enumerate` is a lot like `Object.entries`, except that index value is a number, rather
- * than the string that `Object.entries` produces.
+ * Notes:
+ *   `enumerate` is a lot like `Object.entries`, except that index value is a number, rather
+ *   than the string that `Object.entries` produces.
  */
 export function* enumerate(iterable, start = 0) {
     // It's clear that `enumerate(iterable, start) == zip(count(start), iterable)`
@@ -151,7 +196,8 @@ export function* enumerate(iterable, start = 0) {
     }
 }
 
-/* cycle through an iterable a number of times.
+/** ## `cycle`
+ * cycles through an iterable a number of times.
  *
  * Parameters:
  *    iterable: the iterable to cycle over
@@ -165,7 +211,8 @@ export function* enumerate(iterable, start = 0) {
  *   * `cycle([1,2,3], 2)` yields `1, 2, 3, 1, 2, 3`. The second parameter, if given,
  *      says how many times the cycle should run.
  *
- * `cycle` will also take an iterator or generator, but it spreads it into an array first.
+ * Notes:
+ *   `cycle` will also take an iterator or generator, but it spreads it into an array first.
  */
 export function* cycle(iterable, count = Infinity) {
     iterable = iterable.next ? [...iterable] : iterable
@@ -174,7 +221,8 @@ export function* cycle(iterable, count = Infinity) {
     }
 }
 
-/* yield the elements of one iterable after another until all are used up.
+/** ## `chain`
+ * yield the elements of one iterable after another until all are used up.
  *
  * Parameters:
  *    ...iterables: the iterables to chain together
@@ -184,15 +232,20 @@ export function* cycle(iterable, count = Infinity) {
  *    all iterables have yielded.
  *
  * Example:
- *   * chain('ABC', [1,2]) yields 'A', 'B', 'C', 1, 2
+ *   * `chain('ABC', [1,2])` yields `'A', 'B', 'C', 1, 2`
  *
- * chain also works on iterators so long as they aren't repeated. For example
- *     let x = range(3)
- *     [...chain(x,x)]
- * will only produce [0,1,2] and not [0,1,2,0,1,2] as expected. However
- *     [...chain(range(3), range(3))]
- * does produce the expected result, because the two range() calls are separate
- * iterators.
+ * Notes:
+ *   chain also works on iterators so long as they aren't repeated. For example
+ *   ```
+ *   let x = range(3)
+ *   [...chain(x,x)]
+ *   ```
+ *   will only produce `[0,1,2]` and not `[0,1,2,0,1,2]` as expected. However
+ *   ```
+ *   [...chain(range(3), range(3))]
+ *   ```
+ *   does produce the expected result, because the two range() calls are separate
+ *   iterators.
  */
 export function* chain(...iterables) {
     for (let it of iterables) {
@@ -200,7 +253,8 @@ export function* chain(...iterables) {
     }
 }
 
-/* yield the elements of an iterable specified by another index iterable
+/** ## `take`
+ * yield the elements of an iterable specified by another index iterable
  *
  * Parameters:
  *     iterable: the iterable to take values from
@@ -211,22 +265,23 @@ export function* chain(...iterables) {
  *     values of the iterable picked out by the indices.
  *
  * Examples:
- *    * take('abcdef', range(0, 6, 2)) yields 'a', 'c', 'e'
- *    * take('abcdef', [1,2,4]) yields 'b', 'c', 'e'
- *    * take('abcdef', [1,1,4]) yields 'b', 'b', 'e'
- *    * take('abcdef', [-1,1,4,2,700]) yields undefined, 'b', 'e', 'c', undefined.
- *    * take(count(10), [1,15,100]) yields 10, 24, 109
+ *    * `take('abcdef', range(0, 6, 2))` yields `'a', 'c', 'e'`
+ *    * `take('abcdef', [1,2,4])` yields `'b', 'c', 'e'`
+ *    * `take('abcdef', [1,1,4])` yields `'b', 'b', 'e'`
+ *    * `take('abcdef', [-1,1,4,2,700])` yields `undefined, 'b', 'e', 'c', undefined`
+ *    * `take(count(10), [1,15,100])` yields `10, 24, 109`
  *
- * take is fastest if the iterable is an array or string, and indices is an array.
- * Otherwise it falls back to a slower more general algorithm.
+ * Notes:
+ *   `take` is fastest if the iterable is an array or string, and indices is an array.
+ *   Otherwise it falls back to a slower more general algorithm.
  *
- * You can write take algorithms that work if
+ *   You can write take algorithms that work if
  *   a) both parameters are infinite but indices is increasing (though this yields an
  *      infinite sequence)
  *   b) one of the parameters is finite.
  *
- * In the second case however there is no way of knowing which parameter is the finite one.
- * The algorithm used here assumes the indices are finite.
+ *  In the second case however there is no way of knowing which parameter is the finite one.
+ *  The algorithm used here assumes the indices are finite.
  */
 export function* take(iterable, indices) {
     // the indices need to be an array
@@ -274,13 +329,13 @@ export function* take(iterable, indices) {
     }
 }
 
-// like take but optimized for this specific case
+// `array_take` is like take but optimized for this specific case
 // the indices don't have to be in order or unique.
 function array_take(array, indices) {
     return indices.map((v) => array[v])
 }
 
-// an internal function which yields [item, ...value] for value in iterable.
+// `prefix` is an internal function which yields [item, ...value] for value in iterable.
 // Requires the values of the iterable to be spreadable.
 // Used in combinatorial generators.
 function* prefix(item, iterable) {
@@ -289,14 +344,15 @@ function* prefix(item, iterable) {
     }
 }
 
-// an internal function which yields callbackFn(value) for value in iterable
+// `itermap` is an internal function which yields callbackFn(value) for value in iterable
 function* itermap(iterable, callbackFn) {
     for (let value of iterable) {
         yield callbackFn(value)
     }
 }
 
-/* yield the cartesian product of the iterables
+/** ## `product`
+ * yields the cartesian product of the iterables
  *
  * Parameters:
  *    ...iterables: the iterables to "multiply"
@@ -305,10 +361,11 @@ function* itermap(iterable, callbackFn) {
  *    elements of the cartesian product of the iterables, as arrays.
  *
  * Example:
- *    * product('ABC', [1,2]) will yield
- *       ['A', 1], ['A', 2], ['B', 1], ['B', 2], ['C', 1], ['C', 2]
+ *    * `product('ABC', [1,2])` will yield
+ *       `['A', 1], ['A', 2], ['B', 1], ['B', 2], ['C', 1], ['C', 2]`
  *
- * All iterators in the arguments are first spread into arrays.
+ * Notes:
+ *   All iterators in the arguments are first spread into arrays.
  */
 export function* product(...iterables) {
     // convert everything to iterables and then pass to a recursive
@@ -322,7 +379,7 @@ export function* product(...iterables) {
             // as arrays
             yield* itermap(iterables[0], (item) => [item])
         } else {
-            // product(A,B,C, ...) = A*product(B,C,...), so
+            // product(A,B,C, ...) = $A\times product(B,C,...)$, so
             // we recursively call product(B,C,...) and then put every element
             // of A in front of it.
             for (let item of iterables[0]) {
@@ -332,7 +389,8 @@ export function* product(...iterables) {
     }
 }
 
-/* yield all permutations of an iterable.
+/** ## `permutations`
+ * yields all permutations of an iterable.
  *
  * Parameters:
  *     iterable: the iterable to permute. If the iterable isn't an array, it is
@@ -344,9 +402,9 @@ export function* product(...iterables) {
  *    are repeated elements, the permutations may be odd looking.
  *
  * Examples:
- *   * permutations([1,2,3]) yields
- *       [1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]
- *   * permutations( [1,1,1]) yields [1,1,1] six times, because each 1 is considered unique. When
+ *   * `permutations([1,2,3])` yields
+ *       `[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]`
+ *   * `permutations( [1,1,1])` yields `[1,1,1]` six times, because each 1 is considered unique. When
  *       you pass [1,1,1] to permutatins, it effectively "sees" [1_1, 1_2, 1_3], because each 1 has
  *       a unique index (the subscript).
  */
@@ -378,7 +436,8 @@ export function* permutations(iterable) {
     }
 }
 
-/* return all combinations of n elements from an iterable.
+/** ## `combinations`
+ * yields all combinations of n elements from an iterable.
  *
  * Parameters:
  *     iterable: the iterable to take subsets from. If the iterable isn't an array
@@ -392,7 +451,7 @@ export function* permutations(iterable) {
  *    are repeated elements, the combinations may be odd looking.
  *
  * Example:
- *    combinations([1,2,3,4], 2) yields [1,2], [1,3], [1,4], [2,3], [2,4], [3,4]
+ *    `combinations([1,2,3,4], 2)` yields `[1,2], [1,3], [1,4], [2,3], [2,4], [3,4]`
  */
 export function* combinations(iterable, n) {
     iterable = Array.isArray(iterable) ? iterable : [...iterable]
@@ -408,8 +467,9 @@ export function* combinations(iterable, n) {
     }
 }
 
+// internal use only
+
 function* array_combinations(array, n) {
-    // internal use only
     if (n == 1) {
         yield* array.map((item) => [item])
     } else if (n == array.length) {
@@ -423,11 +483,12 @@ function* array_combinations(array, n) {
     }
 }
 
-/* return all partitions of the iterable with given sizes
+/** ## `partitions`
+ * yields all partitions of the iterable with given sizes
  * A partition is a group of subsets such that
- *    a) they are disjoint
- *    b) their union is the iterable
- *    c) they have the sizes specified.
+ * a) they are disjoint
+ * b) their union is the iterable
+ * c) they have the sizes specified.
  *
  * Parameters:
  *    iterable: the iterable to partition; think of it as a set. If the iterable isn't
@@ -440,15 +501,16 @@ function* array_combinations(array, n) {
  *    of the individual arrays is one partition.
  *
  * Example:
- *    partitions([1,2,3,4,5], [2,2,1]) yields
+ *    `partitions([1,2,3,4,5], [2,2,1])` yields
  *
- *     [[1,2],[3,4],[5]], [[1,2],[3,5],[4]], [[1,2],[4,5],[3]], [[1,3],[2,4],[5]], ...
+ *     `[[1,2],[3,4],[5]], [[1,2],[3,5],[4]], [[1,2],[4,5],[3]], [[1,3],[2,4],[5]], ...`
  *
- *     Each partition (e.g. [[1,2],[3,4],[5]]) has sets of size 2,2,1.
+ *     Each partition (e.g. `[[1,2],[3,4],[5]]`) has sets of size 2,2,1.
  *
- * All elements of the iterable are
- * considered unique by virtue of their different position in the iterable, so if there
- * are repeated elements, the combinations may be odd looking.
+ * Notes:
+ *   All elements of the iterable are
+ *   considered unique by virtue of their different position in the iterable, so if there
+ *   are repeated elements, the combinations may be odd looking.
  */
 export function* partitions(iterable, sizes) {
     iterable = Array.isArray(iterable) ? iterable : [...iterable]
